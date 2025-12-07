@@ -7,6 +7,11 @@ class Motor extends CI_Controller
     {
         parent::__construct();
         // $this->load->library('auth'); // kalau mau pakai
+
+        if (!$this->session->userdata('logged_in')) {
+            redirect('auth/login');
+        }
+
         $this->load->helper(['url', 'form']);
         $this->load->model('Motor_model', 'motor');
         $this->load->model('Log_minyak_model', 'log_minyak');
