@@ -130,7 +130,7 @@ class Auth extends CI_Controller
                     'owner_nama' => $owner->nama,
                 ]);
 
-                redirect('motor'); // arahkan ke halaman utama aplikasi motor
+                redirect('app'); // arahkan ke halaman utama aplikasi motor
             } else {
                 $this->session->set_flashdata('error', 'Kode OTP salah atau sudah kadaluarsa.');
                 redirect('auth/login');

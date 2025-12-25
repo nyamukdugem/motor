@@ -178,6 +178,28 @@
                     </div>
                 </div>
 
+                <!-- KPI tambahan -->
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm text-center">
+                            <div class="card-body py-2">
+                                <div class="small text-muted">Biaya / Km</div>
+                                <div class="fw-bold" id="valCostPerKm">-</div>
+                                <div class="badge bg-light text-secondary mt-1">Efisiensi biaya</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm text-center">
+                            <div class="card-body py-2">
+                                <div class="small text-muted">Efisiensi BBM</div>
+                                <div class="fw-bold" id="valAvgKmpl">-</div>
+                                <div class="badge bg-light text-secondary mt-1">Rata-rata km/l</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tabel ringkasan -->
                 <div class="card border-0 shadow-sm mb-2">
                     <div class="card-header py-2 d-flex justify-content-between align-items-center">
@@ -237,6 +259,58 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Terakhir (Minyak, Oli, Service) -->
+                <div class="card border-0 shadow-sm mt-2">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold text-uppercase text-muted">Terakhir</span>
+                        <span class="badge bg-light text-secondary">
+                            <i class="bi bi-clock-history me-1"></i> Update terbaru
+                        </span>
+                    </div>
+                    <div class="card-body small">
+
+                        <!-- Minyak -->
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="fw-semibold">Isi Minyak</div>
+                                <div class="text-muted">Pengisian BBM terakhir</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold" id="valLastMinyak">-</div>
+                            </div>
+                        </div>
+
+                        <hr class="my-2">
+
+                        <!-- Oli -->
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="fw-semibold">Ganti Oli</div>
+                                <div class="text-muted">Info terakhir ganti oli</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold" id="valLastOli">-</div>
+                            </div>
+                        </div>
+
+                        <hr class="my-2">
+
+                        <!-- Service -->
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold">Service</div>
+                                <div class="text-muted">Info terakhir service</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold" id="valLastService">-</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
             </div>
 
             <div id="dash-empty" class="alert alert-light border small d-none">
@@ -256,71 +330,457 @@
                     </button>
                 </div>
 
-                <div class="section-title" style="font-size:0.8rem;">Riwayat Pengisian</div>
-                <div class="list-group small shadow-sm">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="section-title mb-0" style="font-size:.8rem;">Riwayat Pengisian</div>
+                    <div class="text-muted small"><?= !empty($minyak_list) ? count($minyak_list) . ' data' : ''; ?></div>
+                </div>
+
+                <?php
+                $yNow = (int)date('Y');
+                $mNow = (int)date('n');
+
+                $filterYear  = isset($filterYear) ? (int)$filterYear : $yNow;
+                $filterMonth = isset($filterMonth) ? (int)$filterMonth : $mNow;
+                ?>
+
+                <?php
+                $bulanNama = [
+                    1 => 'Januari',
+                    2 => 'Februari',
+                    3 => 'Maret',
+                    4 => 'April',
+                    5 => 'Mei',
+                    6 => 'Juni',
+                    7 => 'Juli',
+                    8 => 'Agustus',
+                    9 => 'September',
+                    10 => 'Oktober',
+                    11 => 'November',
+                    12 => 'Desember'
+                ];
+                ?>
+
+
+                <div class="card border-0 shadow-sm mb-2">
+                    <div class="card-body py-2">
+                        <form id="formFilterMinyak" method="get" action="<?= base_url('app'); ?>" class="row g-2 align-items-end">
+                            <input type="hidden" name="tab" value="minyak">
+
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Tahun</label>
+                                <select id="minyakYear" name="y" class="form-select form-select-sm">
+                                    <?php for ($yy = $yNow; $yy >= $yNow - 5; $yy--): ?>
+                                        <option value="<?= $yy; ?>" <?= $yy === $filterYear ? 'selected' : ''; ?>><?= $yy; ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Bulan</label>
+                                <select id="minyakMonth" name="m" class="form-select form-select-sm">
+                                    <?php foreach ($bulanNama as $mm => $nm): ?>
+                                        <option value="<?= $mm; ?>" <?= $mm === $filterMonth ? 'selected' : ''; ?>><?= $nm; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-12 d-flex justify-content-between align-items-center">
+                                <div class="small text-muted">
+                                    Auto filter saat dipilih
+                                </div>
+                                <a class="small text-decoration-none" href="<?= base_url('app?tab=minyak'); ?>">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <style>
+                    :root {
+                        --card-r: 16px;
+                        --line: rgba(15, 23, 42, .10);
+                        --soft: rgba(2, 6, 23, .03);
+                    }
+
+                    .fuel-card {
+                        border-radius: var(--card-r);
+                        border: 1px solid var(--line) !important;
+                        box-shadow: 0 10px 26px rgba(2, 6, 23, .06);
+                        overflow: hidden;
+                        background: #fff;
+                    }
+
+                    .fuel-card .topbar {
+                        background: linear-gradient(180deg, rgba(37, 99, 235, .08), rgba(37, 99, 235, 0));
+                        padding: .85rem 1rem .65rem;
+                    }
+
+                    .chip {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: .45rem;
+                        padding: .35rem .55rem;
+                        border-radius: 999px;
+                        border: 1px solid var(--line);
+                        background: #fff;
+                        color: #475569;
+                        font-size: .82rem;
+                        line-height: 1;
+                        white-space: nowrap;
+                    }
+
+                    .money {
+                        font-size: 1.55rem;
+                        line-height: 1.05;
+                        letter-spacing: -.2px;
+                    }
+
+                    .subtle {
+                        color: #64748b;
+                    }
+
+                    .insight {
+                        border: 1px solid var(--line);
+                        background: var(--soft);
+                        border-radius: 14px;
+                        padding: .65rem .75rem;
+                    }
+
+                    .kpi {
+                        font-weight: 800;
+                    }
+
+                    .detail-row {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: .55rem 0;
+                        border-top: 1px dashed rgba(15, 23, 42, .14);
+                        font-size: .92rem;
+                    }
+
+                    .detail-row:first-child {
+                        border-top: 0;
+                        padding-top: 0;
+                    }
+
+                    .detail-row .label {
+                        color: #64748b;
+                    }
+
+                    .btn-ghost {
+                        background: transparent;
+                        border: 0;
+                        padding: .35rem .5rem;
+                        border-radius: 10px;
+                    }
+
+                    .btn-ghost:hover {
+                        background: rgba(2, 6, 23, .06);
+                    }
+
+                    .note {
+                        border-left: 3px solid rgba(37, 99, 235, .35);
+                        padding-left: .65rem;
+                    }
+
+                    /* kecilin divider default */
+                    .fuel-hr {
+                        opacity: .15;
+                    }
+
+                    /* biar tombol collapse enak */
+                    .detail-toggle {
+                        border-radius: 12px;
+                        padding: .6rem .75rem;
+                    }
+                </style>
+
+
+
+                <div class="vstack gap-2">
                     <?php if (!empty($minyak_list)): ?>
                         <?php foreach ($minyak_list as $row): ?>
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <div class="fw-semibold">
-                                            <?= date('d M Y', strtotime($row->tanggal)); ?>
-                                            <span class="badge bg-primary-subtle text-primary ms-1">Minyak</span>
-                                        </div>
-                                        <div class="text-muted">
-                                            KM <?= number_format($row->odo_display_km, 0, ',', '.'); ?>
-                                            <?php if (!empty($row->jenis_bbm)): ?> • <?= html_escape($row->jenis_bbm); ?><?php endif; ?>
-                                                <?php if (!empty($row->isi_liter)): ?> • <?= rtrim(rtrim(number_format($row->isi_liter, 2, ',', '.'), '0'), ','); ?> L<?php endif; ?>
-                                                    <?php if (!empty($row->sisa_minyak_batang)): ?> • Sisa <?= (int)$row->sisa_minyak_batang; ?> batang<?php endif; ?>
+                            <?php
+                            $tglLabel = date('d M Y', strtotime($row->tanggal));
+                            $odoDisp  = number_format($row->odo_display_km, 0, ',', '.');
+                            $odoTot   = number_format((int)$row->odo_total_km, 0, ',', '.');
+
+                            $totalRp = !empty($row->total_uang) ? (int)$row->total_uang : null;
+                            $total   = $totalRp ? 'Rp ' . number_format($totalRp, 0, ',', '.') : '-';
+
+                            $literVal = (!empty($row->isi_liter) && (float)$row->isi_liter > 0) ? (float)$row->isi_liter : null;
+                            $literTxt = $literVal ? rtrim(rtrim(number_format($literVal, 2, ',', '.'), '0'), ',') . ' L' : null;
+
+                            $hargaPerLiter = null;
+                            if ($totalRp && $literVal) $hargaPerLiter = (int)round($totalRp / $literVal);
+
+                            $jarakKm = ($row->jarak_km !== null && $row->jarak_km !== '') ? (float)$row->jarak_km : null;
+
+                            $jarakLabel = null;
+                            if ($jarakKm !== null) {
+                                $jarakLabel = number_format((int)$jarakKm, 0, ',', '.') . " km";
+                                if ($row->selisih_hari === 0) $jarakLabel .= " • hari sama";
+                                elseif ($row->selisih_hari === 1) $jarakLabel .= " • 1 hari";
+                                elseif ($row->selisih_hari > 1) $jarakLabel .= " • " . (int)$row->selisih_hari . " hari";
+                            }
+
+                            $bbm = !empty($row->jenis_bbm) ? html_escape($row->jenis_bbm) : 'BBM';
+
+                            // ===== Indikator hemat/boros =====
+                            $kmPerLiter = null;
+                            $rpPerKm    = null;
+                            $iritLabel  = null;
+                            $iritClass  = 'bg-light text-secondary border';
+
+                            if ($jarakKm && $literVal) {
+                                $kmPerLiter = $jarakKm / $literVal;
+                                if ($totalRp) $rpPerKm = $totalRp / $jarakKm;
+
+                                if ($kmPerLiter >= 40) {
+                                    $iritLabel = 'Hemat';
+                                    $iritClass = 'bg-success-subtle text-success border';
+                                } elseif ($kmPerLiter >= 30) {
+                                    $iritLabel = 'Normal';
+                                    $iritClass = 'bg-primary-subtle text-primary border';
+                                } else {
+                                    $iritLabel = 'Boros';
+                                    $iritClass = 'bg-danger-subtle text-danger border';
+                                }
+                            }
+
+                            // collapse default open kalau ada catatan / sisa minyak
+                            $openDetail = (!empty($row->catatan) || ($row->sisa_minyak_batang !== null && $row->sisa_minyak_batang !== ''));
+                            ?>
+
+                            <div class="card fuel-card"
+                                data-row="minyak" data-id="<?= (int)$row->id; ?>"
+                                data-json='<?= html_escape(json_encode([
+                                                'id' => (int)$row->id,
+                                                'motor_id' => (int)$row->motor_id,
+                                                'tanggal' => $row->tanggal,
+                                                'odo_display_km' => (int)$row->odo_display_km,
+                                                'sisa_minyak_batang' => $row->sisa_minyak_batang !== null ? (int)$row->sisa_minyak_batang : null,
+                                                'jenis_bbm' => $row->jenis_bbm,
+                                                'isi_liter' => $row->isi_liter,
+                                                'total_uang' => $row->total_uang,
+                                                'lokasi_label' => $row->lokasi_label,
+                                                'latitude' => $row->latitude,
+                                                'longitude' => $row->longitude,
+                                                'catatan' => $row->catatan,
+                                            ], JSON_UNESCAPED_UNICODE)); ?>'>
+
+                                <!-- TOP BAR -->
+                                <div class="topbar">
+                                    <div class="d-flex align-items-start justify-content-between gap-2">
+                                        <div class="min-w-0">
+                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                <div class="fw-semibold"><?= $tglLabel; ?></div>
+                                                <span class="badge bg-primary-subtle text-primary">
+                                                    <i class="bi bi-fuel-pump me-1"></i><?= $bbm; ?>
+                                                </span>
+                                            </div>
+
+                                            <?php if (!empty($row->lokasi_label)): ?>
+                                                <div class="small subtle mt-1 text-truncate">
+                                                    <i class="bi bi-geo-alt me-1"></i><?= html_escape($row->lokasi_label); ?>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
 
-                                        <!-- 👇 TAMBAHAN: jarak & selisih hari -->
-                                        <?php if ($row->jarak_km !== null): ?>
-                                            <div class="text-muted small">
-                                                Jarak tempuh: <strong><?= number_format($row->jarak_km, 0, ',', '.'); ?> km</strong>
-                                                <?php if ($row->selisih_hari === 0): ?>
-                                                    • di hari yang sama dengan isi sebelumnya
-                                                <?php elseif ($row->selisih_hari === 1): ?>
-                                                    • 1 hari sejak isi sebelumnya
-                                                <?php elseif ($row->selisih_hari > 1): ?>
-                                                    • <?= (int)$row->selisih_hari; ?> hari sejak isi sebelumnya
-                                                <?php endif; ?>
-                                            </div>
-                                        <?php else: ?>
-                                            <div class="text-muted small fst-italic">
-                                                Isi pertama (tidak ada data sebelumnya)
-                                            </div>
-                                        <?php endif; ?>
-                                        <!-- 👆 END TAMBAHAN -->
-
-                                        <?php if (!empty($row->lokasi_label)): ?>
-                                            <div class="text-muted">
-                                                <i class="bi bi-geo-alt me-1"></i><?= html_escape($row->lokasi_label); ?>
-                                            </div>
-                                        <?php endif; ?>
-                                        <?php if (!empty($row->catatan)): ?>
-                                            <div class="text-muted fst-italic">
-                                                "<?= html_escape($row->catatan); ?>"
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold text-primary">
-                                            <?= $row->total_uang ? 'Rp ' . number_format($row->total_uang, 0, ',', '.') : '-'; ?>
+                                        <div class="dropdown">
+                                            <button class="btn-ghost" type="button" data-bs-toggle="dropdown" aria-label="Menu">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <button class="dropdown-item js-edit-minyak" type="button">
+                                                        <i class="bi bi-pencil-square me-2"></i>Edit
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger js-delete-minyak" type="button">
+                                                        <i class="bi bi-trash me-2"></i>Hapus
+                                                    </button>
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- BODY -->
+                                <div class="card-body p-3">
+
+                                    <!-- HERO TOTAL -->
+                                    <div class="small subtle">Total isi</div>
+                                    <div class="money fw-bold text-primary mt-1"><?= $total; ?></div>
+
+                                    <!-- CHIPS -->
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        <?php if ($literTxt): ?>
+                                            <span class="chip"><i class="bi bi-droplet"></i><?= html_escape($literTxt); ?></span>
+                                        <?php endif; ?>
+
+                                        <?php if ($hargaPerLiter): ?>
+                                            <span class="chip"><i class="bi bi-tag"></i>Rp/L <?= number_format($hargaPerLiter, 0, ',', '.'); ?></span>
+                                        <?php endif; ?>
+
+                                        <?php if ($jarakLabel): ?>
+                                            <span class="chip"><i class="bi bi-speedometer2"></i><?= html_escape($jarakLabel); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- INSIGHT (hemat/normal/boros) -->
+                                    <?php if ($iritLabel && $kmPerLiter !== null): ?>
+                                        <div class="insight mt-3">
+                                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge <?= $iritClass; ?>">
+                                                        <i class="bi bi-graph-up-arrow me-1"></i><?= $iritLabel; ?>
+                                                    </span>
+                                                    <span class="small subtle">Efisiensi</span>
+                                                </div>
+
+                                                <div class="small">
+                                                    <span class="kpi"><?= rtrim(rtrim(number_format($kmPerLiter, 1, ',', '.'), '0'), ','); ?></span> km/L
+                                                </div>
+                                            </div>
+
+                                            <?php if ($rpPerKm !== null): ?>
+                                                <div class="small subtle mt-1">
+                                                    Biaya per km: <span class="fw-semibold text-dark">Rp <?= number_format((int)round($rpPerKm), 0, ',', '.'); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <hr class="my-3 fuel-hr">
+
+                                    <!-- DETAIL COLLAPSE -->
+                                    <button class="btn btn-light border w-100 d-flex align-items-center justify-content-between detail-toggle"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#minyakDetail<?= (int)$row->id; ?>"
+                                        aria-expanded="<?= $openDetail ? 'true' : 'false'; ?>">
+                                        <span class="fw-semibold">
+                                            <i class="bi bi-info-circle me-2"></i>Detail Odo & Sisa
+                                        </span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+
+                                    <div class="collapse <?= $openDetail ? 'show' : ''; ?> mt-2" id="minyakDetail<?= (int)$row->id; ?>">
+                                        <div class="px-1">
+
+                                            <div class="detail-row">
+                                                <span class="label">Odo (display)</span>
+                                                <span class="fw-semibold"><?= $odoDisp; ?> km</span>
+                                            </div>
+
+                                            <div class="detail-row">
+                                                <span class="label">Odo (total)</span>
+                                                <span class="fw-semibold"><?= $odoTot; ?> km</span>
+                                            </div>
+
+                                            <?php if ($row->sisa_minyak_batang !== null && $row->sisa_minyak_batang !== ''): ?>
+                                                <div class="detail-row">
+                                                    <span class="label">Sisa minyak</span>
+                                                    <span class="fw-semibold"><?= (int)$row->sisa_minyak_batang; ?> batang</span>
+                                                </div>
+                                            <?php endif; ?>
+
+                                        </div>
+                                    </div>
+
+                                    <?php if (!empty($row->catatan)): ?>
+                                        <div class="note small subtle mt-3 fst-italic">
+                                            “<?= html_escape($row->catatan); ?>”
+                                        </div>
+                                    <?php endif; ?>
+
+                                </div>
                             </div>
+
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <div class="list-group-item text-muted fst-italic">
-                            Belum ada riwayat pengisian minyak.
+                        <div class="alert alert-light border small mb-0">
+                            Belum ada riwayat pengisian minyak untuk periode ini.
                         </div>
                     <?php endif; ?>
                 </div>
 
+
+
+
             </div>
         </section>
+
+        <div class="modal fade" id="modalEditMinyak" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <form id="formEditMinyak" class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Pengisian Minyak</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="editMinyakId">
+                        <input type="hidden" name="motor_id" value="<?= (int)$motor->id; ?>">
+
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label small">Tanggal</label>
+                                <input type="date" class="form-control form-control-sm" name="tanggal" id="editMinyakTanggal" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">ODO (display)</label>
+                                <input type="number" class="form-control form-control-sm" name="odo_display_km" id="editMinyakOdo" required>
+                            </div>
+
+                            <div class="col-6">
+                                <label class="form-label small">Jenis BBM</label>
+                                <input type="text" class="form-control form-control-sm" name="jenis_bbm" id="editMinyakBbm" placeholder="Pertalite/Pertamax">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Isi (liter)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="isi_liter" id="editMinyakLiter">
+                            </div>
+
+                            <div class="col-6">
+                                <label class="form-label small">Total Uang</label>
+                                <input type="number" class="form-control form-control-sm" name="total_uang" id="editMinyakTotal">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Sisa (batang)</label>
+                                <input type="number" class="form-control form-control-sm" name="sisa_minyak_batang" id="editMinyakSisa" min="0" max="10">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small">Lokasi</label>
+                                <input type="text" class="form-control form-control-sm" name="lokasi_label" id="editMinyakLokasi" placeholder="SPBU ...">
+                                <input type="hidden" name="latitude" id="editMinyakLat">
+                                <input type="hidden" name="longitude" id="editMinyakLng">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small">Catatan</label>
+                                <input type="text" class="form-control form-control-sm" name="catatan" id="editMinyakCatatan" placeholder="Opsional">
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border small mt-3 mb-0">
+                            Odo total akan dihitung ulang otomatis.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-save me-1"></i>Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
 
         <!-- SERVICE -->
         <section id="page-service" class="page">
@@ -656,53 +1116,126 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Switch page
+        // ===== Helper Tanggal (Indonesia) untuk JS =====
+        const Tgl = (() => {
+            const bulan = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            const hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+            // Parse aman untuk 'YYYY-MM-DD' -> Date (lokal), anti offset UTC
+            function parseYmd(ymd) {
+                if (!ymd || typeof ymd !== "string") return null;
+                const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (!m) return null;
+                const y = Number(m[1]);
+                const mo = Number(m[2]) - 1;
+                const d = Number(m[3]);
+                const dt = new Date(y, mo, d, 12, 0, 0); // jam 12 biar aman DST/offset
+                return Number.isNaN(dt.getTime()) ? null : dt;
+            }
+
+            function tglIndo(ymd, withDay = false) {
+                const dt = parseYmd(ymd);
+                if (!dt) return "-";
+                const d = dt.getDate();
+                const m = dt.getMonth();
+                const y = dt.getFullYear();
+                const base = `${String(d).padStart(2, "0")} ${bulan[m]} ${y}`;
+                return withDay ? `${hari[dt.getDay()]}, ${base}` : base;
+            }
+
+            function bulanTahun(year, month) {
+                const y = Number(year);
+                const m = Number(month);
+                if (!y || !m || m < 1 || m > 12) return "-";
+                return `${bulan[m - 1]} ${y}`;
+            }
+
+            function waktuRelatif(ymd) {
+                const dt = parseYmd(ymd);
+                if (!dt) return "-";
+
+                // bandingin dari "hari" (bukan jam) supaya stabil
+                const now = new Date();
+                const a = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+                const b = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const diffDays = Math.round((b - a) / 86400000);
+
+                if (diffDays === 0) return "Hari ini";
+                if (diffDays === 1) return "Kemarin";
+                if (diffDays > 1 && diffDays < 7) return `${diffDays} hari lalu`;
+                if (diffDays >= 7 && diffDays < 30) return `${Math.floor(diffDays / 7)} minggu lalu`;
+                if (diffDays >= 30 && diffDays < 365) return `${Math.floor(diffDays / 30)} bulan lalu`;
+                if (diffDays >= 365) return `${Math.floor(diffDays / 365)} tahun lalu`;
+
+                // tanggal masa depan
+                if (diffDays === -1) return "Besok";
+                if (diffDays < -1) return `${Math.abs(diffDays)} hari lagi`;
+                return "-";
+            }
+
+            return {
+                tglIndo,
+                bulanTahun,
+                waktuRelatif,
+                parseYmd
+            };
+        })();
+    </script>
+
+
+    <script>
+        // Switch page (tetap)
         (function() {
             const navLinks = document.querySelectorAll(".bottom-nav .nav-link");
             const pages = document.querySelectorAll(".page");
 
             function showPage(id) {
-                pages.forEach(p => p.classList.remove("active"));
+                pages.forEach((p) => p.classList.remove("active"));
                 document.getElementById(id)?.classList.add("active");
                 window.scrollTo({
                     top: 0,
                     behavior: "smooth"
                 });
             }
-            navLinks.forEach(btn => {
+
+            navLinks.forEach((btn) => {
                 btn.addEventListener("click", () => {
-                    navLinks.forEach(b => b.classList.remove("active"));
+                    navLinks.forEach((b) => b.classList.remove("active"));
                     btn.classList.add("active");
                     showPage(btn.getAttribute("data-target"));
                 });
             });
         })();
 
-        // Ambil lokasi GPS
+        // Ambil lokasi GPS (tetap)
         function getLocation(type) {
             if (!navigator.geolocation) {
                 alert("Perangkat ini tidak mendukung GPS (geolocation).");
                 return;
             }
             const map = {
-                "minyak": {
+                minyak: {
                     label: document.getElementById("minyakLocationLabel"),
                     lat: document.getElementById("minyakLat"),
                     lng: document.getElementById("minyakLng"),
                 },
-                "service": {
+                service: {
                     label: document.getElementById("serviceLocationLabel"),
                     lat: document.getElementById("serviceLat"),
                     lng: document.getElementById("serviceLng"),
                 },
-                "oli": {
+                oli: {
                     label: document.getElementById("oliLocationLabel"),
                     lat: document.getElementById("oliLat"),
                     lng: document.getElementById("oliLng"),
-                }
+                },
             };
             const target = map[type];
             if (!target) return;
+
             target.label.value = "Mengambil lokasi...";
 
             navigator.geolocation.getCurrentPosition(
@@ -725,9 +1258,10 @@
             );
         }
 
-        // Analytics dari backend
+        // Analytics dari backend (UPGRADED)
         (function() {
             const motorId = <?= (int)$motor->id; ?>;
+
             const yearSel = document.getElementById("filterYear");
             const monthSel = document.getElementById("filterMonth");
             const btnReset = document.getElementById("btnResetFilter");
@@ -756,86 +1290,433 @@
             const kmStartLabel = document.getElementById("kmStartLabel");
             const kmEndLabel = document.getElementById("kmEndLabel");
 
-            function formatRupiah(v) {
-                return "Rp " + (v || 0).toLocaleString("id-ID");
+            // (opsional) kalau nanti kamu tambah elemen KPI baru di HTML, tinggal aktif:
+            const elCostPerKm = document.getElementById("valCostPerKm"); // contoh id
+            const elAvgKmpl = document.getElementById("valAvgKmpl"); // contoh id
+            const elLastOli = document.getElementById("valLastOli"); // contoh id
+            const elLastService = document.getElementById("valLastService"); // contoh id
+            const elLastMinyak = document.getElementById("valLastMinyak");
+
+
+            const API_URL = "<?= base_url('app/get_analytics'); ?>";
+
+            // cache per (tahun-bulan)
+            const cache = new Map();
+            let aborter = null;
+
+            const now = new Date();
+            const defaultYear = <?= (int)$yearNow; ?>;
+            const defaultMonth = now.getMonth() + 1;
+
+            function toInt(v, fallback = 0) {
+                const n = Number(v);
+                return Number.isFinite(n) ? n : fallback;
             }
 
-            function loadAnalytics() {
-                const tahun = yearSel.value;
-                const bulan = monthSel.value;
-                const url = "<?= base_url('motor/get_analytics'); ?>?motor_id=" + motorId + "&tahun=" + tahun + "&bulan=" + bulan;
+            function fmtNumber(v) {
+                const n = toInt(v, null);
+                if (n === null) return "-";
+                return n.toLocaleString("id-ID");
+            }
 
-                fetch(url)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.error || (data.total === 0 && !data.km_start && !data.km_end)) {
-                            dashAnalytics.classList.add("d-none");
-                            dashEmpty.classList.remove("d-none");
-                            labelPeriode.textContent = "Periode: -";
-                            return;
+            function formatRupiah(v) {
+                const n = toInt(v, 0);
+                return "Rp " + n.toLocaleString("id-ID");
+            }
+
+            function setText(el, text) {
+                if (!el) return;
+                el.textContent = text;
+            }
+
+            function showEmpty(label = "-") {
+                dashAnalytics.classList.add("d-none");
+                dashEmpty.classList.remove("d-none");
+                setText(labelPeriode, "Periode: " + (label || "-"));
+
+                // reset ui ringkas
+                setText(valTotal, "Rp 0");
+                setText(valTransaksi, "0 Transaksi");
+                setText(valMinyak, "Rp 0");
+                setText(valMinyakCount, "0x Isi");
+                setText(valServiceOli, "Rp 0");
+                setText(valServiceOliCount, "0x");
+
+                setText(tblMinyakTotal, "Rp 0");
+                setText(tblMinyakCount, "0x");
+                setText(tblServiceTotal, "Rp 0");
+                setText(tblServiceCount, "0x");
+                setText(tblOliTotal, "Rp 0");
+                setText(tblOliCount, "0x");
+                setText(tblKmRange, "-");
+
+                setText(kmUsedLabel, "0 km");
+                setText(kmStartLabel, "Awal: -");
+                setText(kmEndLabel, "Akhir: -");
+                if (kmProgress) kmProgress.style.width = "0%";
+
+                // optional KPI
+                setText(elCostPerKm, "-");
+                setText(elAvgKmpl, "-");
+                setText(elLastOli, "-");
+                setText(elLastService, "-");
+            }
+
+            function render(data) {
+                if (!data || data.error) {
+                    showEmpty("-");
+                    return;
+                }
+
+                // indikator "ada data"
+                const total = toInt(data.total, 0);
+                const kmUsed = toInt(data?.km?.used, 0);
+                const trx = toInt(data.total_transaksi, 0);
+                const hasAny = total > 0 || kmUsed > 0 || trx > 0;
+
+                if (!hasAny) {
+                    showEmpty(data.label || "-");
+                    return;
+                }
+
+                dashAnalytics.classList.remove("d-none");
+                dashEmpty.classList.add("d-none");
+
+                setText(labelPeriode, "Periode: " + (data.label || "-"));
+
+                const minyakTotal = toInt(data?.minyak?.total, 0);
+                const minyakCount = toInt(data?.minyak?.count, 0);
+                const serviceTotal = toInt(data?.service?.total, 0);
+                const serviceCount = toInt(data?.service?.count, 0);
+                const oliTotal = toInt(data?.oli?.total, 0);
+                const oliCount = toInt(data?.oli?.count, 0);
+
+                const totalTrans = trx || (minyakCount + serviceCount + oliCount);
+
+                setText(valTotal, formatRupiah(total));
+                setText(valTransaksi, fmtNumber(totalTrans) + " Transaksi");
+
+                setText(valMinyak, formatRupiah(minyakTotal));
+                setText(valMinyakCount, fmtNumber(minyakCount) + "x Isi");
+
+                const serviceOliTotal = serviceTotal + oliTotal;
+                const serviceOliCount = serviceCount + oliCount;
+                setText(valServiceOli, formatRupiah(serviceOliTotal));
+                setText(valServiceOliCount, fmtNumber(serviceOliCount) + "x");
+
+                setText(tblMinyakTotal, formatRupiah(minyakTotal));
+                setText(tblMinyakCount, fmtNumber(minyakCount) + "x");
+
+                setText(tblServiceTotal, formatRupiah(serviceTotal));
+                setText(tblServiceCount, fmtNumber(serviceCount) + "x");
+
+                setText(tblOliTotal, formatRupiah(oliTotal));
+                setText(tblOliCount, fmtNumber(oliCount) + "x");
+
+                // KM
+                const kmStart = data?.km?.start ?? null;
+                const kmEnd = data?.km?.end ?? null;
+
+                if (kmStart !== null && kmEnd !== null && kmEnd >= kmStart) {
+                    setText(tblKmRange, fmtNumber(kmStart) + " → " + fmtNumber(kmEnd) + " km");
+                    setText(kmUsedLabel, fmtNumber(kmUsed) + " km");
+                    setText(kmStartLabel, "Awal: " + fmtNumber(kmStart) + " km");
+                    setText(kmEndLabel, "Akhir: " + fmtNumber(kmEnd) + " km");
+
+                    // progress: default target 1000 km/bulan (kamu bisa bikin configurable)
+                    const targetKm = 1000;
+                    const percent = targetKm > 0 ? Math.min((kmUsed / targetKm) * 100, 100) : 0;
+                    if (kmProgress) kmProgress.style.width = percent.toFixed(0) + "%";
+                } else {
+                    setText(tblKmRange, "-");
+                    setText(kmUsedLabel, "0 km");
+                    setText(kmStartLabel, "Awal: -");
+                    setText(kmEndLabel, "Akhir: -");
+                    if (kmProgress) kmProgress.style.width = "0%";
+                }
+
+                // KPI opsional (kalau elemen HTML sudah ada)
+                const costPerKm = data?.kpi?.cost_per_km ?? null;
+                const avgKmpl = data?.kpi?.avg_km_per_l ?? null;
+
+                if (elCostPerKm) {
+                    setText(elCostPerKm, costPerKm !== null ? (formatRupiah(costPerKm) + " / km") : "-");
+                }
+                if (elAvgKmpl) {
+                    setText(elAvgKmpl, avgKmpl !== null ? (String(avgKmpl).replace(".", ",") + " km/l") : "-");
+                }
+
+                // last info opsional
+                if (elLastOli) {
+                    const lo = data?.last?.oli;
+                    setText(
+                        elLastOli,
+                        lo ?
+                        `${Tgl.tglIndo(lo.tanggal)} • ${fmtNumber(lo.km_since)} km lalu` :
+                        "-"
+                    );
+                }
+
+                if (elLastService) {
+                    const ls = data?.last?.service;
+                    setText(
+                        elLastService,
+                        ls ?
+                        `${Tgl.tglIndo(ls.tanggal)} • ${fmtNumber(ls.km_since)} km lalu` :
+                        "-"
+                    );
+                }
+
+                // Terakhir isi minyak
+                if (elLastMinyak) {
+                    const lm = data?.last?.minyak;
+                    setText(
+                        elLastMinyak,
+                        lm ?
+                        `${Tgl.tglIndo(lm.tanggal)} • ${fmtNumber(lm.km_since)} km lalu` :
+                        "-"
+                    );
+                }
+
+
+            }
+
+
+            async function loadAnalytics() {
+                const tahun = String(yearSel.value || "");
+                const bulan = String(monthSel.value || "");
+
+                if (!tahun || !bulan) {
+                    showEmpty("-");
+                    return;
+                }
+
+                const cacheKey = `${motorId}-${tahun}-${bulan}`;
+                if (cache.has(cacheKey)) {
+                    render(cache.get(cacheKey));
+                    return;
+                }
+
+                const url = `${API_URL}?motor_id=${encodeURIComponent(motorId)}&tahun=${encodeURIComponent(tahun)}&bulan=${encodeURIComponent(bulan)}`;
+
+                // abort request sebelumnya biar gak balapan
+                if (aborter) aborter.abort();
+                aborter = new AbortController();
+
+                // loading state kecil
+                setText(labelPeriode, "Periode: memuat...");
+
+                try {
+                    const res = await fetch(url, {
+                        signal: aborter.signal,
+                        headers: {
+                            "Accept": "application/json"
                         }
-                        dashAnalytics.classList.remove("d-none");
-                        dashEmpty.classList.add("d-none");
-
-                        labelPeriode.textContent = "Periode: " + (data.label || "-");
-
-                        const totalTrans = (data.minyak?.count || 0) + (data.service?.count || 0) + (data.oli?.count || 0);
-                        valTotal.textContent = formatRupiah(data.total || 0);
-                        valTransaksi.textContent = totalTrans + " Transaksi";
-
-                        valMinyak.textContent = formatRupiah(data.minyak?.total || 0);
-                        valMinyakCount.textContent = (data.minyak?.count || 0) + "x Isi";
-
-                        const serviceOliTotal = (data.service?.total || 0) + (data.oli?.total || 0);
-                        const serviceOliCount = (data.service?.count || 0) + (data.oli?.count || 0);
-                        valServiceOli.textContent = formatRupiah(serviceOliTotal);
-                        valServiceOliCount.textContent = serviceOliCount + "x";
-
-                        tblMinyakTotal.textContent = formatRupiah(data.minyak?.total || 0);
-                        tblMinyakCount.textContent = (data.minyak?.count || 0) + "x";
-
-                        tblServiceTotal.textContent = formatRupiah(data.service?.total || 0);
-                        tblServiceCount.textContent = (data.service?.count || 0) + "x";
-
-                        tblOliTotal.textContent = formatRupiah(data.oli?.total || 0);
-                        tblOliCount.textContent = (data.oli?.count || 0) + "x";
-
-                        if (data.km_start !== null && data.km_end !== null && data.km_end > data.km_start) {
-                            const used = data.km_end - data.km_start;
-                            kmUsedLabel.textContent = used + " km";
-                            kmStartLabel.textContent = "Awal: " + data.km_start.toLocaleString("id-ID") + " km";
-                            kmEndLabel.textContent = "Akhir: " + data.km_end.toLocaleString("id-ID") + " km";
-                            const percent = Math.min((used / 1000) * 100, 100);
-                            kmProgress.style.width = percent.toFixed(0) + "%";
-                        } else {
-                            kmUsedLabel.textContent = "0 km";
-                            kmStartLabel.textContent = "Awal: -";
-                            kmEndLabel.textContent = "Akhir: -";
-                            kmProgress.style.width = "0%";
-                        }
-
-                        if (data.km_start !== null && data.km_end !== null) {
-                            tblKmRange.textContent = data.km_start.toLocaleString("id-ID") + " → " + data.km_end.toLocaleString("id-ID") + " km";
-                        } else {
-                            tblKmRange.textContent = "-";
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
                     });
+                    const data = await res.json();
+
+                    cache.set(cacheKey, data);
+                    render(data);
+                } catch (err) {
+                    if (err?.name === "AbortError") return;
+                    console.error(err);
+                    showEmpty("-");
+                }
             }
 
             yearSel.addEventListener("change", loadAnalytics);
             monthSel.addEventListener("change", loadAnalytics);
+
             btnReset.addEventListener("click", function() {
                 yearSel.value = <?= $yearNow; ?>;
-                monthSel.value = 11;
+                monthSel.value = (new Date()).getMonth() + 1; // bulan sekarang
                 loadAnalytics();
             });
+
+
+            // init default: set bulan sekarang kalau select masih default hardcode
+            if (!monthSel.value) monthSel.value = String(defaultMonth);
+            if (!yearSel.value) yearSel.value = String(defaultYear);
 
             loadAnalytics();
         })();
     </script>
+
+    <script>
+        (function() {
+            const modalEl = document.getElementById("modalEditMinyak");
+            const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+
+            function getCard(btn) {
+                return btn.closest('[data-row="minyak"]');
+            }
+
+            function parseJsonFromCard(card) {
+                const raw = card.getAttribute("data-json");
+                try {
+                    return JSON.parse(raw);
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // Toggle detail
+            document.addEventListener("click", function(e) {
+                const t = e.target.closest(".js-toggle-detail");
+                if (!t) return;
+                const card = getCard(t);
+                if (!card) return;
+                const detail = card.querySelector(".js-detail");
+                if (!detail) return;
+
+                const isHidden = detail.classList.contains("d-none");
+                detail.classList.toggle("d-none");
+                t.innerHTML = isHidden ?
+                    '<i class="bi bi-chevron-up me-1"></i>Sembunyikan' :
+                    '<i class="bi bi-chevron-down me-1"></i>Detail';
+            });
+
+            // Edit
+            document.addEventListener("click", function(e) {
+                const btn = e.target.closest(".js-edit-minyak");
+                if (!btn) return;
+
+                const card = getCard(btn);
+                const data = card ? parseJsonFromCard(card) : null;
+                if (!data || !modal) return;
+
+                // isi form
+                document.getElementById("editMinyakId").value = data.id || "";
+                document.getElementById("editMinyakTanggal").value = data.tanggal || "";
+                document.getElementById("editMinyakOdo").value = data.odo_display_km ?? "";
+                document.getElementById("editMinyakBbm").value = data.jenis_bbm ?? "";
+                document.getElementById("editMinyakLiter").value = data.isi_liter ?? "";
+                document.getElementById("editMinyakTotal").value = data.total_uang ?? "";
+                document.getElementById("editMinyakSisa").value = data.sisa_minyak_batang ?? "";
+                document.getElementById("editMinyakLokasi").value = data.lokasi_label ?? "";
+                document.getElementById("editMinyakLat").value = data.latitude ?? "";
+                document.getElementById("editMinyakLng").value = data.longitude ?? "";
+                document.getElementById("editMinyakCatatan").value = data.catatan ?? "";
+
+                modal.show();
+            });
+
+            // Submit edit
+            const form = document.getElementById("formEditMinyak");
+            if (form) {
+                form.addEventListener("submit", async function(e) {
+                    e.preventDefault();
+
+                    const url = "<?= base_url('app/update_minyak'); ?>";
+                    const fd = new FormData(form);
+
+                    try {
+                        const res = await fetch(url, {
+                            method: "POST",
+                            body: fd,
+                            headers: {
+                                "Accept": "application/json"
+                            }
+                        });
+                        const out = await res.json();
+
+                        if (!out.ok) {
+                            alert(out.msg || "Gagal menyimpan.");
+                            return;
+                        }
+
+                        // refresh simpel: reload page (paling aman karena list hitung jarak/selisih hari)
+                        location.reload();
+                    } catch (err) {
+                        console.error(err);
+                        alert("Terjadi error saat menyimpan.");
+                    }
+                });
+            }
+
+            // Hapus
+            document.addEventListener("click", async function(e) {
+                const btn = e.target.closest(".js-delete-minyak");
+                if (!btn) return;
+
+                const card = getCard(btn);
+                const data = card ? parseJsonFromCard(card) : null;
+                if (!data) return;
+
+                if (!confirm("Hapus catatan pengisian ini?")) return;
+
+                const url = "<?= base_url('app/delete_minyak'); ?>";
+                const fd = new FormData();
+                fd.append("id", data.id);
+                fd.append("motor_id", data.motor_id);
+
+                try {
+                    const res = await fetch(url, {
+                        method: "POST",
+                        body: fd,
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    });
+                    const out = await res.json();
+
+                    if (!out.ok) {
+                        alert(out.msg || "Gagal menghapus.");
+                        return;
+                    }
+
+                    // remove card dari DOM
+                    card.remove();
+                } catch (err) {
+                    console.error(err);
+                    alert("Terjadi error saat menghapus.");
+                }
+            });
+        })();
+    </script>
+
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get("tab");
+            if (!tab) return;
+
+            const map = {
+                dashboard: "page-dashboard",
+                minyak: "page-minyak",
+                service: "page-service",
+                oli: "page-oli",
+            };
+            const target = map[tab];
+            if (!target) return;
+
+            // set nav active
+            document.querySelectorAll(".bottom-nav .nav-link").forEach(a => {
+                a.classList.toggle("active", a.getAttribute("data-target") === target);
+            });
+
+            // show page
+            document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+            document.getElementById(target)?.classList.add("active");
+        })();
+    </script>
+
+    <script>
+        (function() {
+            const f = document.getElementById("formFilterMinyak");
+            if (!f) return;
+            const y = document.getElementById("minyakYear");
+            const m = document.getElementById("minyakMonth");
+            const submit = () => f.submit();
+
+            y?.addEventListener("change", submit);
+            m?.addEventListener("change", submit);
+        })();
+    </script>
+
+
+
+
 </body>
 
 </html>

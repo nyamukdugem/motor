@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Motor extends CI_Controller
+class App extends CI_Controller
 {
     public function __construct()
     {
@@ -17,6 +17,8 @@ class Motor extends CI_Controller
         $this->load->model('Log_minyak_model', 'log_minyak');
         $this->load->model('Log_service_model', 'log_service');
         $this->load->model('Log_ganti_oli_model', 'log_oli');
+
+        $this->load->helper('tanggal');
     }
 
     public function index()
@@ -35,8 +37,19 @@ class Motor extends CI_Controller
             $motor = $this->motor->get_default_motor();
         }
 
+        $filterYear  = (int)$this->input->get('y');
+        $filterMonth = (int)$this->input->get('m');
+
+        if ($filterYear <= 0)  $filterYear  = (int)date('Y');
+        if ($filterMonth < 1 || $filterMonth > 12) $filterMonth = (int)date('n');
+
+        $data['filterYear']  = $filterYear;
+        $data['filterMonth'] = $filterMonth;
+
+        // minyak list FILTERED (bulan/tahun)
+        $data['minyak_list'] = $this->log_minyak->get_with_stats_by_motor_month($motor->id, $filterYear, $filterMonth, 50);
+
         $data['motor']        = $motor;
-        $data['minyak_list']  = $this->log_minyak->get_with_stats_by_motor($motor->id, 10);
         $data['service_list'] = $this->log_service->get_recent_by_motor($motor->id, 5);
         $data['oli_list']     = $this->log_oli->get_recent_by_motor($motor->id, 5);
 
@@ -145,6 +158,57 @@ class Motor extends CI_Controller
 
         return $this->output
             ->set_content_type('application/json')
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
             ->set_output(json_encode($data));
+    }
+
+    public function update_minyak()
+    {
+        $id = (int)$this->input->post('id');
+        $motor_id = (int)$this->input->post('motor_id');
+        $tanggal  = $this->input->post('tanggal');
+        $odo_disp = (int)$this->input->post('odo_display_km');
+
+        if (!$id || !$motor_id || !$tanggal || !$odo_disp) {
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode(['ok' => false, 'msg' => 'Parameter tidak lengkap']));
+        }
+
+        $odo_total = $this->motor->hitung_odo_total($motor_id, $odo_disp);
+
+        $data = [
+            'tanggal'            => $tanggal,
+            'odo_display_km'     => $odo_disp,
+            'odo_total_km'       => $odo_total,
+            'sisa_minyak_batang' => $this->input->post('sisa_minyak_batang') !== '' ? (int)$this->input->post('sisa_minyak_batang') : null,
+            'jenis_bbm'          => $this->input->post('jenis_bbm'),
+            'isi_liter'          => $this->input->post('isi_liter') !== '' ? $this->input->post('isi_liter') : null,
+            'total_uang'         => $this->input->post('total_uang') !== '' ? (int)$this->input->post('total_uang') : null,
+            'lokasi_label'       => $this->input->post('lokasi_label'),
+            'latitude'           => $this->input->post('latitude') !== '' ? $this->input->post('latitude') : null,
+            'longitude'          => $this->input->post('longitude') !== '' ? $this->input->post('longitude') : null,
+            'catatan'            => $this->input->post('catatan'),
+        ];
+
+        $this->log_minyak->update_by_id($id, $motor_id, $data);
+
+        return $this->output->set_content_type('application/json')
+            ->set_output(json_encode(['ok' => true]));
+    }
+
+    public function delete_minyak()
+    {
+        $id = (int)$this->input->post('id');
+        $motor_id = (int)$this->input->post('motor_id');
+
+        if (!$id || !$motor_id) {
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode(['ok' => false, 'msg' => 'Parameter tidak lengkap']));
+        }
+
+        $this->log_minyak->delete_by_id($id, $motor_id);
+
+        return $this->output->set_content_type('application/json')
+            ->set_output(json_encode(['ok' => true]));
     }
 }
