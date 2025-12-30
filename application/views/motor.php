@@ -928,7 +928,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
-                    <form method="post" action="<?= base_url('motor/simpan_minyak'); ?>">
+                    <form method="post" action="<?= base_url('app/simpan_minyak'); ?>">
                         <input type="hidden" name="motor_id" value="<?= (int)$motor->id; ?>">
 
                         <div class="mb-2">
@@ -1010,7 +1010,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
-                    <form method="post" action="<?= base_url('motor/simpan_service'); ?>">
+                    <form method="post" action="<?= base_url('app/simpan_service'); ?>">
                         <input type="hidden" name="motor_id" value="<?= (int)$motor->id; ?>">
 
                         <div class="mb-2">
@@ -1065,7 +1065,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
-                    <form method="post" action="<?= base_url('motor/simpan_oli'); ?>">
+                    <form method="post" action="<?= base_url('app/simpan_oli'); ?>">
                         <input type="hidden" name="motor_id" value="<?= (int)$motor->id; ?>">
 
                         <div class="mb-2">
