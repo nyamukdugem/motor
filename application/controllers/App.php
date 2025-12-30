@@ -83,7 +83,7 @@ class App extends CI_Controller
         $this->log_minyak->insert($data);
 
         $this->session->set_flashdata('msg', 'Catatan minyak tersimpan.');
-        redirect('motor');
+        redirect('app');
     }
 
     /* ---------- SIMPAN SERVICE ---------- */

@@ -98,7 +98,7 @@ class Auth extends CI_Controller
     {
         // Kalau sudah login, arahkan ke dashboard
         if ($this->session->userdata('logged_in')) {
-            redirect('motor'); // ganti sesuai controller utama lu
+            redirect('app'); // ganti sesuai controller utama lu
             return;
         }
 
